@@ -15,7 +15,7 @@ undo log（回滚日志）—— 记录没有更新（undo）的数据。
 
 因此可以通过 ReadView + undo log 实现 MVCC（多版本并发控制）。
 
-![img.png](../images/log-02.png)
+![img.png](../imabges/log-02.png)
 
 ## undo log 作用
 - 实现事务回滚，保障事务的原子性：事务处理过程中，如果出现了错误或者用户执行了 ROLLBACK 语句，MySQL 可以利用 undo log 中的历史数据将数据恢复到事务开始之前的状态
