@@ -4,22 +4,22 @@
 ### Redis切换数据库
 Redis 默认支持 16 个数据库，可以通过 Redis 的配置文件 redis.conf 中的 databases <n> 来修改，客户端与 Redis 建立连接后会默认选择 0 号数据库，可以使用 SELECT 命令切换数据库。
 ```
--- Redis命令行
+-- Redis 命令行
 redis>SELECT 1
 -- Java
 jedis.selcet(1)
 ```
 ### Redis通用命令
 ```
--- 查找所有key
+-- 查找所有 key
 >keys *
--- 查找以st1结尾的所有key
+-- 查找以 st1 结尾的所有 key
 >keys *st1
--- 判断key是否存在
+-- 判断 key 是否存在
 >exists list1
--- 判断key的类型
+-- 判断 key 的类型
 >type list1
--- 删除key
+-- 删除 key
 >del key
 ```
 ### Redis的DEL/UNLINK命令
@@ -94,7 +94,7 @@ Jedis 把 Redis 命令封装好，Lettuce 则进一步有了更丰富的 Api，�
 public Boolean tryLock(String key, String value, long timeout, TimeUnit unit) {
 return redisTemplate.opsForValue().setIfAbsent(key, value, timeout, unit);
 }
-// 解锁，防止删错别人的锁，以uuid为value校验是否自己的锁
+// 解锁，防止删错别人的锁，以 uuid 为 value 校验是否自己的锁
 public void unlock(String lockName, String uuid) {
 if(uuid.equals(redisTemplate.opsForValue().get(lockName)){
 redisTemplate.opsForValue().del(lockName);    
@@ -164,10 +164,10 @@ if (redis.call('hexists', key, threadId) == 0) then
 return nil;
 end;
 
--- 计数器-1
+-- 计数器 -1
 local count = redis.call('hincrby', key, threadId, -1);
 
--- 删除lock
+-- 删除 lock
 if (count == 0) then
 redis.call('del', key);
 return nil;
@@ -253,7 +253,7 @@ rLock.unlock();
 通过查看源码，发现 RLock 锁定义方式和我们 Redis 自定义 Lua 脚本基本一致，而释放锁方式则有不同。
 ```
 -- Redisson的unlockInnerAsync()函数执行Lua脚本部分
--- 不存在key
+-- 不存在 key
 if (redis.call('hexists', KEYS[1], ARGV[3]) == 0) then
 return nil;
 end;
@@ -336,10 +336,10 @@ redLock.unlock();
 但是如果使用红锁，需要在多个节点上都添加分布式锁，性能影响和运维成本较大，因此在 Redisson 3.16.0 后，红锁已被弃用，可以使用 Redis 提供的原生 Redlock 算法实现。
 
 #### Redis vs ZooKeeper分布式锁
-CAP理论：任何一个分布式系统都无法同时满足
-- 一致性(Consistency)
-- 可用性(Availablility)
-- 分区容错性(Partition tolerance)
+CAP 理论：任何一个分布式系统都无法同时满足
+- 一致性（Consistency）
+- 可用性（Availablility）
+- 分区容错性（Partition tolerance）
 
 Redis 是 AP 类型的分布式锁，是为高可用设计的，如果保证强一致性会非常影响性能。
 
