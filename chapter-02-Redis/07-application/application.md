@@ -112,7 +112,7 @@ unlock;
 
 2.**2.0 版本（RedisTemplate 执行 Lua 脚本删除）**
 ```
--- lockDel.lua文件
+-- lockDel.lua 文件
 if redis.call('get', KEYS[1]) == ARGV[1]
 then
 -- 执行删除操作
@@ -127,26 +127,26 @@ end
 DefaultRedisScript<Object> unlockScript = new DefaultRedisScript();
 unlockScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("lockDel.lua")));
 
-// 执行lua脚本解锁
+// 执行 lua 脚本解锁
 redisTemplate.execute(unlockScript, Collections.singletonList(keyName), value);
 ```
 原子性的问题解决了，但还是会造成线程死锁。当一个线程已经获取该锁且未释放时，该线程其它操作命令又去竞争该锁，造成自己等待自己释放锁的死锁现象。而只有当锁是可重入时，即同一线程允许多次获取同一把锁时，就可以防止线程死锁。实现方式为添加计数器，每次获取锁时 +1，释放锁时 -1，当锁 =0 时，就可以释放整个锁了。
 
 3.**3.0 版本（RedisTemplate 执行 Lua 脚本可重入锁）**
 ```
--- lock.lua文件
+-- lock.lua 文件
 local key = KEYS[1];
 local threadId = ARGV[1];
 local releaseTime = ARGV[2];
 
--- lockname不存在
+-- lockname 不存在
 if(redis.call('exists', key) == 0) then
 redis.call('hset', key, threadId, '1');
 redis.call('expire', key, releaseTime);
 return 1;
 end;
 
--- 当前线程已id存在
+-- 当前线程已 id 存在
 if(redis.call('hexists', key, threadId) == 1) then
 redis.call('hincrby', key, threadId, '1');
 redis.call('expire', key, releaseTime);
@@ -175,7 +175,7 @@ end;
 ```
 ```
 /**
-*@description 原生redis实现分布式锁
+*@description 原生 redis 实现分布式锁
 **/
 @Getter
 @Setter
@@ -252,7 +252,7 @@ rLock.unlock();
 #### RLock锁
 通过查看源码，发现 RLock 锁定义方式和我们 Redis 自定义 Lua 脚本基本一致，而释放锁方式则有不同。
 ```
--- Redisson的unlockInnerAsync()函数执行Lua脚本部分
+-- Redisson 的 unlockInnerAsync() 函数执行 Lua 脚本部分
 -- 不存在 key
 if (redis.call('hexists', KEYS[1], ARGV[3]) == 0) then
 return nil;
@@ -296,7 +296,7 @@ RLock 锁释放步骤：
 当锁被其他线程占用时，通过监听锁的释放通知（在其他线程通过 RedissonLock 释放锁时，会通过发布订阅 PubSub 功能发起通知），等待锁被其他线程释放，也是为了避免自旋的一种常用效率手段。
 
 ```
-/**RedissonLock的加锁方法lock()里的订阅步骤**/
+/**RedissonLock 的加锁方法 lock() 里的订阅步骤**/
 long threadId = Thread.currentThread().getId();
 Long ttl = this.tryAcquire(-1L, leaseTime, unit, threadId);
 if (ttl != null) {
@@ -430,7 +430,7 @@ redis-cli -p 6379 --hotkeys
 
 扫描 Redis 中的所有 key，且只能找出每种数据结构占用内存最大的 String 数据类型，包含元素最多的复合数据类型。
 ```
--- 参数-i控制每次扫描后休息的时间间隔时间(秒)
+-- 参数 -i 控制每次扫描后休息的时间间隔时间(秒)
 redis-cli -p 6379 -- bigkeys -i 3
 ```
 2.使用 Redis 自带的 `SCAN` 命令
@@ -463,9 +463,9 @@ update goods set stock = stock - 1 where goods_id = ？ and stock > 0
 
 把数据分成很多个段，每个段是一个单独的锁，所以多个线程过来并发修改数据的时候，可以并发的修改不同段的数据假设场景：假如你现在商品有 100 个库存，在 redis 存放 5 个库存 key，形如:
 ```
-key1=goods-01,value=20;
-key2=goods-02,value=20;
-key3=goods-03,value=20
+key1 = goods-01, value = 20;
+key2 = goods-02, value = 20;
+key3 = goods-03, value = 20
 ```
 用户下单时对用户 id 进行 %5 计算，看落在哪个 redis 的 key 上，就去取哪个，这样每次就能够处理 5 个进程请求
 
